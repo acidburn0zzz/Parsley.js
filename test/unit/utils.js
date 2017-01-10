@@ -80,4 +80,21 @@ describe('ParsleyUtils', () => {
     }
     itMaps('   foo    bar   ', 'foo.ns bar.ns');
   });
+
+  describe('parse', () => {
+    describe('date', () => {
+      it('returns null for invalid dates', () => {
+        expect(ParsleyUtils.parse.date('1972-13-02')).to.be.null;
+        expect(ParsleyUtils.parse.date('1973-02-29')).to.be.null;
+        expect(ParsleyUtils.parse.date('72-01-06')).to.be.null;
+        expect(ParsleyUtils.parse.date('1972/01/06')).to.be.null;
+        expect(ParsleyUtils.parse.date('1972-01-6')).to.be.null;
+        expect(ParsleyUtils.parse.date('1972-1-06')).to.be.null;
+        expect(ParsleyUtils.parse.date('  1972-01 -06  ')).to.be.null;
+      });
+      it('returns a date for strings of form YYYY/MM/DD', () => {
+        expect(ParsleyUtils.parse.date('1972-01-06')).to.eql(new Date('1972/01/06'));
+      });
+    });
+  });
 });
