@@ -1,51 +1,6 @@
 import $ from 'jquery';
 import ParsleyUtils from './utils';
 
-var requirementConverters = {
-  string: function(string) {
-    return string;
-  },
-  integer: function(string) {
-    if (isNaN(string))
-      throw 'Requirement is not an integer: "' + string + '"';
-    return parseInt(string, 10);
-  },
-  number: function(string) {
-    if (isNaN(string))
-      throw 'Requirement is not a number: "' + string + '"';
-    return parseFloat(string);
-  },
-  reference: function(string) { // Unused for now
-    var result = $(string);
-    if (result.length === 0)
-      throw 'No such reference: "' + string + '"';
-    return result;
-  },
-  boolean: function(string) {
-    return string !== 'false';
-  },
-  object: function(string) {
-    return ParsleyUtils.deserializeValue(string);
-  },
-  regexp: function(regexp) {
-    var flags = '';
-
-    // Test if RegExp is literal, if not, nothing to be done, otherwise, we need to isolate flags and pattern
-    if (/^\/.*\/(?:[gimy]*)$/.test(regexp)) {
-      // Replace the regexp literal string with the first match group: ([gimy]*)
-      // If no flag is present, this will be a blank string
-      flags = regexp.replace(/.*\/([gimy]*)$/, '$1');
-      // Again, replace the regexp literal string with the first match group:
-      // everything excluding the opening and closing slashes and the flags
-      regexp = regexp.replace(new RegExp('^/(.*?)/' + flags + '$'), '$1');
-    } else {
-      // Anchor regexp:
-      regexp = '^' + regexp + '$';
-    }
-    return new RegExp(regexp, flags);
-  }
-};
-
 var convertArrayRequirement = function(string, length) {
   var m = string.match(/^\s*\[(.*)\]\s*$/);
   if (!m)
@@ -57,9 +12,12 @@ var convertArrayRequirement = function(string, length) {
 };
 
 var convertRequirement = function(requirementType, string) {
-  var converter = requirementConverters[requirementType || 'string'];
+  var converter = ParsleyUtils.parse[requirementType || 'string'];
   if (!converter)
     throw 'Unknown requirement specification: "' + requirementType + '"';
+  let converted = converter(string);
+  if (converted === null)
+    throw `Requirement is not a ${requirementType}: "${string}"`;
   return converter(string);
 };
 
