@@ -11,16 +11,6 @@ var convertArrayRequirement = function(string, length) {
   return values;
 };
 
-var convertRequirement = function(requirementType, string) {
-  var converter = ParsleyUtils.parse[requirementType || 'string'];
-  if (!converter)
-    throw 'Unknown requirement specification: "' + requirementType + '"';
-  let converted = converter(string);
-  if (converted === null)
-    throw `Requirement is not a ${requirementType}: "${string}"`;
-  return converter(string);
-};
-
 var convertExtraOptionRequirement = function(requirementSpec, string, extraOptionReader) {
   var main = null;
   var extra = {};
@@ -28,10 +18,10 @@ var convertExtraOptionRequirement = function(requirementSpec, string, extraOptio
     if (key) {
       var value = extraOptionReader(key);
       if ('string' === typeof value)
-        value = convertRequirement(requirementSpec[key], value);
+        value = ParsleyUtils.parseRequirement(requirementSpec[key], value);
       extra[key] = value;
     } else {
-      main = convertRequirement(requirementSpec[key], string);
+      main = ParsleyUtils.parseRequirement(requirementSpec[key], string);
     }
   }
   return [main, extra];
@@ -83,12 +73,12 @@ ParsleyValidator.prototype = {
     if ($.isArray(type)) {
       var values = convertArrayRequirement(requirements, type.length);
       for (var i = 0; i < values.length; i++)
-        values[i] = convertRequirement(type[i], values[i]);
+        values[i] = ParsleyUtils.parseRequirement(type[i], values[i]);
       return values;
     } else if ($.isPlainObject(type)) {
       return convertExtraOptionRequirement(type, requirements, extraOptionReader);
     } else {
-      return [convertRequirement(type, requirements)];
+      return [ParsleyUtils.parseRequirement(type, requirements)];
     }
   },
   // Defaults:

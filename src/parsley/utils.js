@@ -141,6 +141,16 @@ var ParsleyUtils = {
     }
   },
 
+  parseRequirement: function(requirementType, string) {
+    var converter = this.parse[requirementType || 'string'];
+    if (!converter)
+      throw 'Unknown requirement specification: "' + requirementType + '"';
+    let converted = converter(string);
+    if (converted === null)
+      throw `Requirement is not a ${requirementType}: "${string}"`;
+    return converter(string);
+  },
+
   namespaceEvents: function(events, namespace) {
     events = this.trimString(events || '').split(/\s+/);
     if (!events[0])
